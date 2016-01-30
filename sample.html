@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+#svg {
+margin-top: -30px;
+}
+
+path {
+  stroke-linejoin: round;
+  }
+
+.state-boundary {
+  fill: none;
+  stroke: #000;
+  stroke-width: 0.5px;
+  }
+  
+.graticule { 
+ 
+	fill: none;
+	stroke: #000;
+	stroke-width: 1px;
+}
+
+.land-glow {
+  fill-opacity: 1;
+  filter: url(#blur);
+}
+
+.land-fill {
+  stroke: black;
+  stroke-width: .5px;
+
+}
+
+#clock {
+position: absolute; 
+top: 140px;
+left: 990px;
+opacity: 1;
+font-family: Verdana, sans-serif;
+line-height: 1em;
+color: DarkOrange;
+font-weight:bold;
+font-size: 52px;
+
+}
+
+#tooltip {
+    position: absolute;
+ 	background-color: black;
+	width: auto;
+    height: auto;
+    padding: 7px;
+	-webkit-border-radius: 10px;
+    -moz-border-radius: 10px;
+    border-radius: 10px;
+    -webkit-box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+    -mox-box-shadow: 4px 4px 4px 10px rgba(0, 0, 0, 0.4);
+    box-shadow: 4px 4px 10px rbga(0, 0, 0, 0.4);
+    pointer-events: none;
+}
+
+#tooltip.hidden {
+    opacity: 0;
+}
+
+#location { 
+	color: DarkOrange;
+}
+
+#tooltext { 
+	color: white;
+}
+
+#total {
+	color: yellow;
+}
+
+#tooltip p {
+    margin: 0;
+    font-family: sans-serif;
+    font-size: 12px;
+    line-height: 20px;
+}
+
+#control.hidden { 
+	opacity: 0;
+}
+
+.heading { 
+	font-size: 30px;
+	font-family: Verdana, sans-serif;
+	}
+
+.sub {
+	font-size: 14px;
+	font-family: Verdana, sans-serif;
+}
+
+.intro { 
+	position: absolute;
+	top: 20px;
+	left: 50px;
+}
+
+.cell{
+	fill: none;
+	opacity: 0.7;
+	stroke: #fff;
+	stroke-width: 2px;
+	pointer-events: all;
+}
+
+.cell:hover {
+	fill: white;
+	fill-opacity: 0.5;
+	display: inline;
+}
+
+.cluster{
+	fill: red;
+	stroke: #fff;
+	stroke-width: 2px;
+}
+
+#geodata {
+    position: absolute;
+ 	top: 570px;
+	left: 1100px;
+	}
+
+#geodata.hidden {
+    opacity: 0;
+}
+
+table.gradienttable {
+	font-family: verdana,arial,sans-serif;
+	font-size:11px;
+	color:#333333;
+	border-width: 1px;
+	border-color: #999999;
+	border-collapse: collapse;
+}
+table.gradienttable th {
+	padding: 0px;
+	background: #d5e3e4;
+	background: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/Pgo8c3ZnIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgdmlld0JveD0iMCAwIDEgMSIgcHJlc2VydmVBc3BlY3RSYXRpbz0ibm9uZSI+CiAgPGxpbmVhckdyYWRpZW50IGlkPSJncmFkLXVjZ2ctZ2VuZXJhdGVkIiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgeDE9IjAlIiB5MT0iMCUiIHgyPSIwJSIgeTI9IjEwMCUiPgogICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI2Q1ZTNlNCIgc3RvcC1vcGFjaXR5PSIxIi8+CiAgICA8c3RvcCBvZmZzZXQ9IjQwJSIgc3RvcC1jb2xvcj0iI2NjZGVlMCIgc3RvcC1vcGFjaXR5PSIxIi8+CiAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNiM2M4Y2MiIHN0b3Atb3BhY2l0eT0iMSIvPgogIDwvbGluZWFyR3JhZGllbnQ+CiAgPHJlY3QgeD0iMCIgeT0iMCIgd2lkdGg9IjEiIGhlaWdodD0iMSIgZmlsbD0idXJsKCNncmFkLXVjZ2ctZ2VuZXJhdGVkKSIgLz4KPC9zdmc+);
+	background: -moz-linear-gradient(top,  #d5e3e4 0%, #ccdee0 40%, #b3c8cc 100%);
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#d5e3e4), color-stop(40%,#ccdee0), color-stop(100%,#b3c8cc));
+	background: -webkit-linear-gradient(top,  #d5e3e4 0%,#ccdee0 40%,#b3c8cc 100%);
+	background: -o-linear-gradient(top,  #d5e3e4 0%,#ccdee0 40%,#b3c8cc 100%);
+	background: -ms-linear-gradient(top,  #d5e3e4 0%,#ccdee0 40%,#b3c8cc 100%);
+	background: linear-gradient(to bottom,  #d5e3e4 0%,#ccdee0 40%,#b3c8cc 100%);
+	border: 1px solid #999999;
+}
+table.gradienttable td.open {
+	padding: 0px;
+	background: #ebecda;
+	background: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/Pgo8c3ZnIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgdmlld0JveD0iMCAwIDEgMSIgcHJlc2VydmVBc3BlY3RSYXRpbz0ibm9uZSI+CiAgPGxpbmVhckdyYWRpZW50IGlkPSJncmFkLXVjZ2ctZ2VuZXJhdGVkIiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgeDE9IjAlIiB5MT0iMCUiIHgyPSIwJSIgeTI9IjEwMCUiPgogICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI2ViZWNkYSIgc3RvcC1vcGFjaXR5PSIxIi8+CiAgICA8c3RvcCBvZmZzZXQ9IjQwJSIgc3RvcC1jb2xvcj0iI2UwZTBjNiIgc3RvcC1vcGFjaXR5PSIxIi8+CiAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNjZWNlYjciIHN0b3Atb3BhY2l0eT0iMSIvPgogIDwvbGluZWFyR3JhZGllbnQ+CiAgPHJlY3QgeD0iMCIgeT0iMCIgd2lkdGg9IjEiIGhlaWdodD0iMSIgZmlsbD0idXJsKCNncmFkLXVjZ2ctZ2VuZXJhdGVkKSIgLz4KPC9zdmc+);
+	background: -moz-linear-gradient(top,  #ebecda 0%, #e0e0c6 40%, #ceceb7 100%);
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#ebecda), color-stop(40%,#e0e0c6), color-stop(100%,#ceceb7));
+	background: -webkit-linear-gradient(top,  #ebecda 0%,#e0e0c6 40%,#ceceb7 100%);
+	background: -o-linear-gradient(top,  #ebecda 0%,#e0e0c6 40%,#ceceb7 100%);
+	background: -ms-linear-gradient(top,  #ebecda 0%,#e0e0c6 40%,#ceceb7 100%);
+	background: linear-gradient(to bottom,  #ebecda 0%,#e0e0c6 40%,#ceceb7 100%);
+	border: 1px solid #999999;
+}
+
+table.gradienttable th p{
+	margin:0px;
+	padding:8px;
+	border-top: 1px solid #eefafc;
+	border-bottom:0px;
+	border-left: 1px solid #eefafc;
+	border-right:0px;
+}
+table.gradienttable td p{
+	margin:0px;
+	padding:8px;
+	border-top: 1px solid #fcfdec;
+	border-bottom:0px;
+	border-left: 1px solid #fcfdec;;
+	border-right:0px;
+}
+
+span.datum{
+	margin-left: 10px;
+}
+
+span.first{
+	margin-left: 30px;
+}
+
+span.second{
+	margin-left: 32px;
+}
+
+span.third{
+	margin-left: 35px;
+}
+
+span.bla{
+	margin-left: 38px;
+}
+
+span.fourth{
+	margin-left: 37px;
+}
+
+span.male{
+	margin-left: 39px;
+}
+
+span.female{
+	margin-left: 25px;
+}
+
+#tot{
+	margin-left: 350px;
+}
+
+#num{
+	color: red;
+	font-size: 60px;
+}
+
+.most{
+	margin-left: 100px;
+}
+
+.least{
+	margin-left: 50px;
+}
+
+.oth{
+	margin-left: 37px;
+}
+
+</style>
+<body>
+<div class="intro" style="width: 1200px;">
+<div id="title" class="heading">Visualizing the NamUs database</div>
+<hr>
+<div id="options" class="sub" align="right">View By:  <a href="#" onclick="choose(2)">Location</a> | Demographic | <a href="#" onclick="choose(4)">Cluster</a> | <a href="#" onclick="choose(0)">Time</a> </div>
+</div>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script src="http://d3js.org/topojson.v1.min.js"></script>
+<script>
+
+var width = 1400,
+    height = 800;
+
+function stop() {clearInterval(interval); };
+
+var interval;
+
+function reset() {
+
+	interval = setInterval(function () {feeder() ;} , 1);
+
+};
+
+d3.select("body").append("svg")
+	.attr("id", "svg")
+	.attr("width", width)
+	.attr("height", height);
+	
+function choose(num) { 
+	
+var project = d3.geo.mercator()
+		.center([-105, 45])
+		.scale(1200);
+	
+var path = d3.geo.path()
+		.projection(project);
+
+var svg = d3.select("#svg")
+		
+	d3.json("json/us-states.json", function(json) {
+	
+	function drawMap() {
+	
+	d3.selectAll("path").remove();
+	
+	svg.selectAll("#land").remove();
+	
+	svg.selectAll("use").remove();
+	
+	d3.selectAll("#clock").remove();
+	
+	svg.selectAll("circle").remove();
+		
+	d3.select("#geodata").style("opacity", 0);
+	
+	d3.selectAll("#tooltip").style("opacity", 0);
+	
+	d3.selectAll("#control").style("opacity", 1);
+	
+	svg.append("path")
+		.datum(topojson.feature(json, json.objects.land))
+		.attr("id", "land")
+		.attr("d", path)
+		.attr("fill", "#D7EBAD")
+		.attr("opacity", 0.7)
+		.attr("stroke", "black");
+	
+	svg.selectAll("path")
+		.data(topojson.mesh(json, json.objects.states))
+		.enter().append("path")
+		.attr("d", path);
+		
+	svg.insert("path", ".graticule")
+		.datum(topojson.mesh(json, json.objects.states, function(a, b) { return a !== b; }))
+		.attr("class", "state-boundary")
+		.attr("d", path);
+	};
+	
+	function finishedMap() {
+		
+		d3.csv("data/missing.csv", function(error, data) {
+        	
+		var count = d3.select('body').append('div')
+				.attr("id", "clock");
+	
+		svg.selectAll("circle")
+				.data(data).enter().append("circle")
+					.attr("cx", function(d) {
+						return project([+d.lon, +d.lat])[0];})
+					.attr("cy", function(d) { 
+						return project([+d.lon, +d.lat])[1];})
+					.attr("r", 4)
+					.style("fill", "DarkOrange")
+					.attr("opacity",0.5);
+			
+		count.text(data[data.length - 1].year);	
+	});
+	
+	};
+	
+	function timeLapse() { 
+	
+		d3.csv("data/missing.csv", function(error, data) {
+        	
+		var count = d3.select('body').append('div')
+				.attr("id", "clock");
+	
+		svg.select("#circle").append("circle");
+		
+		var counter = 0;
+		var storage = [];
+		var set = data.length-1;
+		var running = true;		
+		
+		delete window.interval;
+		
+		reset();
+		
+		window.feeder = function () { 
+				
+				if(counter <= set) {
+					running = true
+					var i = data[counter % set];
+					counter += 1;
+					storage.push(i);
+					update(storage); } 
+				
+				else {
+					
+					clearInterval(interval); 
+					running = false;}
+				}; 
+			
+		
+		function update(data) {
+		
+		svg.selectAll("circle")
+				.data(data).enter().append("circle")
+					.attr("cx", function(d) {
+						return project([+d.lon, +d.lat])[0];})
+					.attr("cy", function(d) { 
+						return project([+d.lon, +d.lat])[1];})
+					.attr("r", 20)
+					.style("fill", "DarkOrange")
+					.attr("opacity",1)
+						.transition().duration(750)
+						.attr("cx", function(d) {
+						return project([+d.lon, +d.lat])[0];})
+					.attr("cy", function(d) { 
+						return project([+d.lon, +d.lat])[1];})
+					.attr("r", 4)
+					.style("fill", "DarkOrange")
+					.attr("opacity",0.5);
+			
+		count.text(data[data.length-1].year);	
+		
+		};	
+
+		});
+		
+	};
+	
+var color = d3.scale.linear()
+	.domain([-50,600])
+	.range(["white", "darkorange"]);
+			
+	
+function drawStates() {
+	
+	stop();
+	
+	d3.selectAll("path").remove();
+	
+	d3.selectAll("#clock").remove();
+	
+	svg.selectAll("circle").remove();
+	
+	d3.select("#geodata").style("opacity", 0);
+	
+	d3.select("#control").style("opacity", 0);
+	
+	svg.append("path")
+		.datum(topojson.feature(json, json.objects.land))
+		.attr("id", "land")
+		.attr("d", path)
+		.attr("fill","white")
+		.attr("stroke", "black");
+		
+	svg.selectAll("path")
+		.data(topojson.mesh(json, json.objects.states))
+		.enter().append("path")
+		.attr("d", path);
+		
+	d3.csv("data/missing.csv", function (error, data) { 
+	
+function categories(data,cat) {
+	
+	var cat_count = {};
+
+	for(var i = 0; i< data.length; i++) {
+			var num = data[i][cat];
+			cat_count[num] = cat_count[num] ? cat_count[num]+1 : 1;}
+		
+	return cat_count }
+	
+var stcount = categories(data,"state");
+	
+var tots = [], 
+	labs = [], 
+	states = [],
+	prop;
+	
+for (prop in stcount) {
+	states.push(
+		{'label' : prop, 'total' : stcount[prop]})
+	};
+		
+	d3.csv("data/cities.csv", function (error, city) {
+            
+        console.log(city);    
+	
+	var radScale = d3.scale.sqrt()
+		.domain([d3.min(city, function (d) {return +d.total; }), 
+			d3.max(city, function (d) {return +d.total; })])
+		.range([4,40]);
+						
+	svg.append("g")
+	  	.attr("class", "map")
+	   	.selectAll("path")
+	   	.data(topojson.feature(json, json.objects.states).features)
+	       	.enter().append("path")
+	       	.attr("d", path)
+	      	.attr("id", function(d){return d.properties.abb});
+	
+	svg.selectAll("circle")
+		.data(city).enter().append("circle")
+			.attr("id", function (d) {return d.city; })
+			.attr("cx", function(d) {
+				return project([+d.lon, +d.lat])[0];})
+			.attr("cy", function(d) { 
+				return project([+d.lon, +d.lat])[1];})
+			.attr("r", 0)
+			.style("fill", "green")
+			.attr("opacity",0.0)
+				.transition().duration(1500).delay(function (d, i) { return i*30; })
+					.attr("cx", function(d) {
+						return project([+d.lon, +d.lat])[0];})
+					.attr("cy", function(d) { 
+						return project([+d.lon, +d.lat])[1];})
+					.attr("r", function (d) { return radScale(d.total); })
+					.style("fill", "green")
+					.attr("opacity",0.5)
+					.sort(function (a, b) { return b.total - a.total; });
+		
+	states.forEach(function (d) {
+		
+		svg.select("path#"+d.label)
+			.datum(d)
+			.style("fill", "white")
+				.transition().duration(750)
+					.style("fill", color(+d.total)); });
+								
+	svg.insert("path", ".graticule")
+		.datum(topojson.mesh(json, json.objects.states, function(a, b) { return a !== b; }))
+		.attr("class", "state-boundary")
+		.attr("d", path)
+		.style("stroke","white")
+			.transition().duration(750)
+				.style("stroke","black");
+	
+	states.forEach(function (d) {
+		
+		svg.select("path#"+d.label)
+			.datum(d)
+			.on("mouseover", function (d) {
+				d3.select("#tooltip")
+					.style("left", (d3.event.pageX + 50) + "px")
+					.style("top", (d3.event.pageY - 30) + "px")
+					.style("opacity", 0.7)
+					.select("#location")
+						.text(d.label)
+						.style("opacity", 1);
+				d3.select("#tooltip")
+					.select("#total")
+						.style("opacity", 1)
+						.text(d.total); })
+			.on("mouseout", function () {
+				d3.select("#tooltip")
+					.style("opacity", 0); })});	
+	
+	svg.selectAll("circle").data(city)
+	    .sort(function (a, b) { return b.total - a.total; })
+		.on("mouseover", function (d) {
+			d3.select(this)
+				.transition().duration(500)
+					.attr("r", radScale(1.5 * d.total))
+					.style("fill", "yellow")
+					.style("stroke", "black")
+					.style("stroke-width", "3");
+			d3.select("#tooltip")
+				.style("left", (d3.event.pageX + 50) + "px")
+				.style("top", (d3.event.pageY - 30) + "px")
+				.style("opacity", 0.7)
+				.select("#location")
+					.text(d.city)
+					.style("opacity", 1);
+			d3.select("#tooltip")
+				.select("#total")
+					.style("opacity", 1)
+					.text(d.total); })
+		.on("mouseout", function (d) {
+			d3.select(this)
+				.transition().duration(500)
+					.attr("r", radScale(d.total))
+					.style("fill", "green")
+					.style("stroke", "green")
+					.style("stroke-width", "1");
+			d3.select("#tooltip")
+				.style("opacity", 0); });
+
+});		
+	
+	
+});
+	
+	
+};
+
+function drawClusters() {
+	
+	stop();
+	
+	d3.selectAll("path").remove();
+	
+	d3.selectAll("#clock").remove();
+	
+	svg.selectAll("circle").remove();
+		
+	d3.select("#geodata").style("opacity", 0);
+	
+	d3.selectAll("#tooltip").style("opacity", 0);
+	
+	d3.select("#control").style("opacity", 0)
+	
+	svg.append("path")
+		.datum(topojson.feature(json, json.objects.states))
+		.attr("id", "land")
+		.attr("d", path)
+		.attr("fill", "white");
+		
+	svg.append("g")
+	  	.attr("class", "map")
+	   	.selectAll("path")
+	   	.data(topojson.feature(json, json.objects.states).features)
+	       	.enter().append("path")
+	       	.attr("d", path)
+	      	.attr("fill", "steelblue")
+			.attr("opacity", 0.5);
+			
+	svg.insert("path", ".graticule")
+		.datum(topojson.mesh(json, json.objects.states, function(a, b) { return a !== b; }))
+		.attr("class", "state-boundary")
+		.attr("d", path);
+		
+};
+
+function addCluster() {
+
+	d3.csv("data/cluster.csv", function (error, cluster) {
+	
+	var vor = svg.append("g").attr("id", "voronoi");
+	var voronoi = d3.geom.voronoi()
+		.x(function(d) { return (d.coords[0]); })
+		.y(function(d) { return (d.coords[1]); });
+	
+	var color = d3.scale.category20b()
+	
+	var clustData = [];
+  	cluster.forEach(function (d,i) {
+  		var element = {
+				id: d.clust,
+  				coords: project([+d.lon, +d.lat]),
+  				total: d.total,
+  				male: d.male,
+  				female: d.female,
+				white: d.white,
+				black: d.black,
+				other: d.other,
+				medage: d.medage,
+				minors: d.minors,
+				wmonth: d.wmonth,
+				wmpct: d.wmpct,
+				bmonth: d.bmonth,
+				bmpct: d.bmpct,
+				wday: d.wday,
+				wdpct: d.wdpct,
+				bday: d.bday,
+				bdpct: d.bdpct,
+				yr1: d.yr1,
+				yr1_tot: d.yr1_tot,
+				yr2: d.yr2, 
+				yr2_tot: d.yr2_tot, 
+				yr3: d.yr3,
+				yr3_tot: d.yr3_tot
+  			};
+  		clustData.push(element);
+  	});
+		
+	var g = vor.selectAll("g")
+		.data(voronoi(clustData))
+        .enter().append("svg:g");
+
+    g.append("path")
+       .attr("id", "#cell")
+	   .attr("class", "cell")
+       .attr("d", function(d) { return "M" + d.join("L") + "Z"; });
+	
+	g.select("path")
+	   .data(clustData)
+	   .on("mouseover", function (d) {
+				d3.select("#geodata")
+					.style("opacity", 1)
+					.select("#clustnum")
+						.text(d.id)
+						.style("opacity", 1);
+				d3.select("#geodata")
+					.select("#num")
+						.style("opacity", 1)
+						.text(d.total);
+				d3.select("#geodata")
+					.select("#med")
+						.style("opacity", 1)
+						.text(d.medage + " yrs");
+				d3.select("#geodata")
+					.select("#minor")
+						.style("opacity", 1)
+						.text(d.minors + "%"); 
+				d3.select("#geodata")
+					.select("#m")
+						.style("opacity", 1)
+						.text(d.male + "%");
+				d3.select("#geodata")
+					.select("#f")
+						.style("opacity", 1)
+						.text(d.female + "%");
+				d3.select("#geodata")
+					.select("#blk")
+						.style("opacity", 1)
+						.text(d.black + "%");
+				d3.select("#geodata")
+					.select("#wht")
+						.style("opacity", 1)
+						.text(d.white + "%");
+				d3.select("#geodata")
+					.select("#oth")
+						.style("opacity", 1)
+						.text(d.other + "%");
+				d3.select("#geodata")
+					.select("#bday")
+						.style("opacity", 1)
+						.text(d.bday);
+				d3.select("#geodata")
+					.select("#bdpct")
+						.style("opacity", 1)
+						.text(d.bdpct + "%");
+				d3.select("#geodata")
+					.select("#wday")
+						.style("opacity", 1)
+						.text(d.wday);
+				d3.select("#geodata")
+					.select("#wdpct")
+						.style("opacity", 1)
+						.text(d.wdpct + "%");
+				d3.select("#geodata")
+					.select("#bmonth")
+						.style("opacity", 1)
+						.text(d.bmonth);
+				d3.select("#geodata")
+					.select("#bmpct")
+						.style("opacity", 1)
+						.text(d.bmpct + "%");
+				d3.select("#geodata")
+					.select("#wmonth")
+						.style("opacity", 1)
+						.text(d.wmonth);
+				d3.select("#geodata")
+					.select("#wmpct")
+						.style("opacity", 1)
+						.text(d.wmpct + "%");
+				d3.select("#geodata")
+					.select("#yr1")
+						.style("opacity", 1)
+						.text(d.yr1);
+				d3.select("#geodata")
+					.select("#yr1_tot")
+						.style("opacity", 1)
+						.text(d.yr1_tot);
+				d3.select("#geodata")
+					.select("#yr2")
+						.style("opacity", 1)
+						.text(d.yr2);
+				d3.select("#geodata")
+					.select("#yr2_tot")
+						.style("opacity", 1)
+						.text(d.yr2_tot);
+				d3.select("#geodata")
+					.select("#yr3")
+						.style("opacity", 1)
+						.text(d.yr3);
+				d3.select("#geodata")
+					.select("#yr3_tot")
+						.style("opacity", 1)
+						.text(d.yr3_tot);})
+			.on("mouseout", function () {
+				d3.select("#geodata")
+					.style("opacity", 0); });			
+    
+	svg.selectAll("circle")
+        .data(clustData)
+      .enter().append("svg:circle")
+		.attr("class", "cluster")
+        .attr("cx", function(d) { return d.coords[0]; })
+        .attr("cy", function(d) { return d.coords[1]; })
+        .attr("r", function(d) { return Math.sqrt([d.total])*0.65; })
+		.on("mouseover", function (d) {
+				d3.select("#geodata")
+					.style("opacity", 1)
+					.select("#clustnum")
+						.text(d.id)
+						.style("opacity", 1);
+				d3.select("#geodata")
+					.select("#num")
+						.style("opacity", 1)
+						.text(d.total);
+				d3.select("#geodata")
+					.select("#med")
+						.style("opacity", 1)
+						.text(d.medage + " yrs");
+				d3.select("#geodata")
+					.select("#minor")
+						.style("opacity", 1)
+						.text(d.minors + "%"); 
+				d3.select("#geodata")
+					.select("#m")
+						.style("opacity", 1)
+						.text(d.male + "%");
+				d3.select("#geodata")
+					.select("#f")
+						.style("opacity", 1)
+						.text(d.female + "%");
+				d3.select("#geodata")
+					.select("#blk")
+						.style("opacity", 1)
+						.text(d.black + "%");
+				d3.select("#geodata")
+					.select("#wht")
+						.style("opacity", 1)
+						.text(d.white + "%");
+				d3.select("#geodata")
+					.select("#oth")
+						.style("opacity", 1)
+						.text(d.other + "%");
+				d3.select("#geodata")
+					.select("#bday")
+						.style("opacity", 1)
+						.text(d.bday);
+				d3.select("#geodata")
+					.select("#bdpct")
+						.style("opacity", 1)
+						.text(d.bdpct + "%");
+				d3.select("#geodata")
+					.select("#wday")
+						.style("opacity", 1)
+						.text(d.wday);
+				d3.select("#geodata")
+					.select("#wdpct")
+						.style("opacity", 1)
+						.text(d.wdpct + "%");
+				d3.select("#geodata")
+					.select("#bmonth")
+						.style("opacity", 1)
+						.text(d.bmonth);
+				d3.select("#geodata")
+					.select("#bmpct")
+						.style("opacity", 1)
+						.text(d.bmpct + "%");
+				d3.select("#geodata")
+					.select("#wmonth")
+						.style("opacity", 1)
+						.text(d.wmonth);
+				d3.select("#geodata")
+					.select("#wmpct")
+						.style("opacity", 1)
+						.text(d.wmpct + "%");
+				d3.select("#geodata")
+					.select("#yr1")
+						.style("opacity", 1)
+						.text(d.yr1);
+				d3.select("#geodata")
+					.select("#yr1_tot")
+						.style("opacity", 1)
+						.text(d.yr1_tot);
+				d3.select("#geodata")
+					.select("#yr2")
+						.style("opacity", 1)
+						.text(d.yr2);
+				d3.select("#geodata")
+					.select("#yr2_tot")
+						.style("opacity", 1)
+						.text(d.yr2_tot);
+				d3.select("#geodata")
+					.select("#yr3")
+						.style("opacity", 1)
+						.text(d.yr3);
+				d3.select("#geodata")
+					.select("#yr3_tot")
+						.style("opacity", 1)
+						.text(d.yr3_tot);})
+			.on("mouseout", function () {
+				d3.select("#geodata")
+					.style("opacity", 0); });			
+
+		
+});		
+		
+};
+		
+	if(num == 0) {
+	drawMap();
+	timeLapse();
+};
+	if(num == 1) {
+	drawMap();
+	finishedMap();
+};
+
+	if(num == 2) {
+	drawStates();
+};
+	
+	if(num == 4) {
+	drawClusters();
+	addCluster();	
+};
+	
+});
+
+};
+
+
+
+choose(2);	
+
+</script>
+<div id="tooltip" class="hidden">
+    <p><span id="location"><strong>Anywhere, USA</strong></span></p>
+	<p><span id="tooltext">Total: </span><span id="total"><strong>100</strong></span></p>
+</div>
+
+<div id="control" class="hidden" style="position: absolute; z-index:1; margin-left: 1040px; margin-top: -760px;">
+<table>
+<tr>
+<td style="padding: 5px;">
+<a href="#" onclick="choose(0)"><img src="backward.png" width="30" height="30"></a>
+</td>
+<td style="padding: 5px;">
+<a href="#" onclick="stop()"><img src="stop.png" width="30" height="30"></a>
+</td>
+<td style="padding: 5px;">
+<a href="#" onclick="choose(1)"><img src="forward.png" width="30" height="30"></a>
+</td>
+</tr>
+</table>
+</div>
+
+<div id="geodata" class="hidden">
+<table class="gradienttable">
+<tr>
+	<th colspan="2" align="left"><p>Cluster <span id="clustnum">&nbsp;&nbsp;#00</span></p></th>
+</tr>
+<tr>
+	<td align="left" class="open">
+		<div align="left" style="width: 150px; margin-top: 20px; margin-bottom: 15px;"><span class="datum"><strong><u>Age</u></strong></span></div>
+		<div style="width: 150px; margin-bottom:10px;"><span class="first">Median:</span><span id="med" class="first">42 yrs</span></div>
+		<div style="width: 150px; margin-bottom:20px;"><span class="second">Minors:</span><span id="minor" class="second">42%</span></div>
+		
+	</td>
+	<td align="left" rowspan="2" valign="top" class="open">
+		<div align="left" style="width: 150px; margin-top: 20px; margin-bottom: 15px;"><span class="datum"><strong><u>Time</u></strong></span></div>
+		<table width="400px;" class="plain" style="margin-left: -20px;">
+		<tr>
+		<td width="50px">
+		</td>
+		<td width="100px" align="right">
+		<span class="answer" style="margin-right: 15px;"><u>Most Likely</u></span>
+		</td>
+		<td width="100px" align="right">
+		<span class="answer" style="margin-right: 30px;"><u>Least Likely</u></span>
+		</td>
+		</tr>
+		<tr>
+		<td width="50px" align="right">
+		<div style="margin-top: 20px; margin-right: -10px;">Day:</div>
+		</td>
+		<td width="100px" align="right">
+		<div style="margin-right: 15px;margin-top:20px;"><span id="wday">Thursday</span> &nbsp;&nbsp;(<span id="wdpct">30%</span>)</div>
+		</td>
+		<td width="100px" align="right">
+		<div style="margin-right: 30px;margin-top:20px;"><span id="bday">Thursday</span> &nbsp;&nbsp;(<span id="bdpct">30%</span>)</div>
+		</td>
+		</tr>
+		<tr>
+		<td width="50px" align="right">
+		<div style="margin-top: 20px;margin-right: -10px;">Month:</div>
+		</td>
+		<td width="100px" align="right">
+		<div style="margin-right: 15px;margin-top: 20px;"><span id="wmonth">September</span> &nbsp;&nbsp;(<span id="wmpct">30%</span>)</div>
+		</td>
+		<td width="100px" align="right">
+		<div style="margin-right: 30px;margin-top: 20px;"><span id="bmonth">February</span> &nbsp;&nbsp;(<span id="bmpct">30%</span>)</div>
+		</td>
+		</tr>
+		</table>
+	</td>
+</tr>
+<tr>
+	<td align="left" class="open">
+		<div align="left" style="width: 150px; margin-top: 20px; margin-bottom: 15px;"><span class="datum"><strong><u>Gender</u></strong></span></div>
+		<div style="width: 150px; margin-bottom:10px;"><span class="male">Male:</span><span class="third" id="m">42%</span></div>
+		<div style="width: 150px; margin-bottom:10px;"><span class="female">Female:</span><span class="third" id="f">42%</span></div>
+	</td>
+</tr>
+<tr>
+	<td align="left" class="open">
+		<div align="left" style="width: 150px; margin-top: 20px; margin-bottom: 15px;"><span class="datum"><strong><u>Ethnicity</u></strong></span></div>
+		<div style="width: 150px; margin-bottom:10px;"><span class="bla">Black:</span><span class="third" id="blk">42%</span></div>
+		<div style="width: 150px; margin-bottom:10px;"><span class="third">White:</span><span class="third" id="wht">42%</span></div>
+		<div style="width: 150px; margin-bottom:20px;"><span class="third">Other:</span><span class="oth" id="oth">42%</span></div>
+		
+	</td>
+	<td align="left" class="open" valign="top">
+		<div align="left" style="width: 150px; margin-top: 20px; margin-bottom: 15px;"><span class="datum"><strong><u>Most Active Years</u></strong></span></div>
+		<div style="margin-bottom: 10px;"><span class="third">&nbsp;1st:</span> <span style="margin-right: 15px;">&nbsp;&nbsp;<span id="yr1">2014</span> &nbsp;&nbsp;(<span id="yr1_tot">125</span>)</div>
+		<div style="margin-bottom: 10px;"><span class="third">2nd:</span> <span style="margin-right: 15px;">&nbsp;&nbsp;<span id="yr2">2014</span> &nbsp;&nbsp;(<span id="yr2_tot">125</span>)</div>
+		<div style="margin-bottom: 20px;"><span class="fourth">3rd:</span> <span style="margin-right: 15px;">&nbsp;&nbsp;<span id="yr3">2014</span> &nbsp;&nbsp;(<span id="yr3_tot">125</span>)</div>
+		<div style="margin-left: 230px;margin-top: -95px;"><span id="num">&nbsp;&nbsp;<strong>100</strong></span></div> <div style="margin-left: 180px;margin-top: -88px;"><span style="font-size: 20px;"><strong>Total Missing</strong></span></div> 
+		</td>
+		
+</tr>
+</table>
+</div>
+
+</body>
+</html>

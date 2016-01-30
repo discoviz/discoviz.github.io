@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset='utf-8'>
+
+<title>
+Visualizing the NamUs Database
+</title>
+</head>
+
+<style>
+/* CSS properties here */
+html, body {
+    max-width: 100%;
+    overflow-x: hidden;
+    
+}
+
+body {
+    font-size: 14px;
+    font-family: Calibri;
+    margin-bottom: -20px;
+    margin-top: 0px;
+    margin-left: 0px;
+    margin-right: 0px;
+}
+
+td {
+    vertical-align: top;
+}
+
+path {
+  stroke-linejoin: round;
+}
+
+.filtergrid {
+box-shadow: 0px 0px 40px 25px rgba(211, 235, 173, 0.75);
+-moz-box-shadow: 0px 0px 40px 25px rgba(211, 235, 173, 0.75);
+-webkit-box-shadow: 0px 0px 40px 25px rgba(211, 235, 173, 0.75);
+}
+
+.state-boundary {
+  fill: none;
+  stroke: #000;
+  stroke-width: 0.5px;
+}
+  
+.graticule { 
+   fill: none;
+   stroke: #000;
+   stroke-width: 1px;
+}
+
+</style>
+
+<body background="img/bg.png">
+
+<script src='js/d3.v3.min.js'></script>
+<script src='js/crossfilter.v1.js'></script>
+<script src='js/topojson.js'></script>
+<script src='js/jquery-2.1.3.js'></script>
+<script src='js/jquery-ui.min.js'></script>
+<script src='js/xdate.js'></script>
+
+<div style="width: 100%; background-color: lightblue; padding: -20px -10px -10px -10px;">
+    
+    <div style="height: 15px;"></div>
+    <div align='left' id='title' style='height: 40px; font-size: 28px; font-family: Calibri; font-weight: bold; width: 1200; margin-left:20px;'>
+        Visualizing the NamUs database
+    </div>
+
+    <hr align='left' width='100%'>
+
+</div>    
+
+
+<script>
+//Place JavaScript here
+var width = 1100,
+    height = 600;
+
+//Create canvas
+d3.select('body').append('svg')
+	.attr('id', 'svg')
+	.attr('width', width)
+	.attr('height', height);
+
+function drawMap() {
+    
+    var project = d3.geo.mercator()
+                .center([-100, 40])
+		.scale(950);
+
+    var path = d3.geo.path()
+		.projection(project);
+
+    var svg = d3.select('#svg');
+    
+    d3.json('json/us-states.json', function(json) {        
+    
+	svg.append('path')
+		.datum(topojson.feature(json, json.objects.land))
+		.attr('id', 'land')
+		.attr('d', path)
+		.attr('fill', '#D3EBAD')
+		.attr('opacity', 0.7)
+                .attr('z-index', -9999)
+		.attr('stroke', 'black');
+	
+	svg.selectAll('path')
+		.data(topojson.mesh(json, json.objects.states))
+		.enter().append('path')
+		.attr('d', path);
+		
+	svg.insert('path', '.graticule')
+		.datum(topojson.mesh(json, json.objects.states, function(a, b) { return a !== b; }))
+		.attr('class', 'state-boundary')
+		.attr('d', path);
+	
+    });    
+        	
+};
+
+function addPoints(data) {
+    
+        var project = d3.geo.mercator()
+                .center([-100, 40])
+		.scale(950);
+
+        var path = d3.geo.path()
+            	.projection(project);
+
+        var svg = d3.select('#svg');
+          
+        var key = function(data) { return data.id; };
+
+        var circles = svg.selectAll("circle")
+                            .data(data, key);
+                
+        circles.enter().append("circle")
+                    .attr("cx", function(d) { return project([+d.lon, +d.lat])[0]; })
+                    .attr("cy", function(d) { return project([+d.lon, +d.lat])[1]; })
+                    .attr("r", 0)
+                    .attr("fill", 'darkorange')
+                    .attr("z-index", 9999)
+                    .attr("opacity",0.0)
+                        .transition().duration(3000)
+                            .ease('sin-in-out')
+                            .attr('r', 4)
+                            .attr('fill', 'DarkOrange')
+                            .attr("z-index", 9999)
+                            .attr('opacity', 0.5);
+        
+         
+        circles.exit().transition().duration(3000)
+            .ease('sin-in-out')
+            .attr('r', 0)
+            .remove();    
+    
+};
+
+function dateMath(input) {
+    
+        input.sort(function(a, b) { return a.date - b.date; });
+          
+        var first = input[0]['date'];
+        var dd = first.getDate();
+        var mm = first.getMonth() + 1;
+        var yyyy = first.getFullYear();
+        
+        if(dd < 10) { dd = '0' + dd; }
+        if(mm < 10) { mm = '0' + mm; }
+        var firstRecord = mm + '/' + dd + '/' + yyyy;
+        
+        var last = input[input.length - 1]['date'];
+        var dd = last.getDate();
+        var mm = last.getMonth() + 1;
+        var yyyy = last.getFullYear();
+        
+        if(first.getFullYear() < 1951) { first.setFullYear(1951); };
+        
+        return[firstRecord, first, last];
+       
+}
+
+function applyFilter(gender, age, race, year, month, day, state, loc) {
+    
+    if(gender === "All") { gender = null; };
+    if(age === "All") { age = null; };
+    if(race === "All") { race = null; };
+    if(day === "All") { day = null; };
+    if(month === "All") { month = null; };
+    if(year === "All") { year = null; };
+    if(state === "All" | state === '') { state = null; };
+    if(loc === "All") { loc = null; };
+    
+    d3.csv('data/missing.csv', function(error, data) {
+        
+        data.forEach(function(d) {
+            
+            d.date = d3.time.format('%m/%d/%Y').parse(d.date);
+            d.age = +d.age;
+            d.year = +d.year;
+            
+        })
+        
+        var cf = crossfilter(data);        
+        var byGender = cf.dimension(function(d) { return d.sex; });
+        var byAge = cf.dimension(function(d) { return d.age; });
+        var byRace = cf.dimension(function(d) { return d.race; });
+        var byDay = cf.dimension(function(d) { return d.day; });
+        var byMonth = cf.dimension(function(d) {return d.month; });
+        var byYear = cf.dimension(function(d) { return d.year; });
+        var byState = cf.dimension(function(d) { return d.state; });
+        var byLoc = cf.dimension(function(d) { return d.loc; });
+        var byDate = cf.dimension(function(d) { return d.date; });
+        
+        byLoc.filter(loc);
+        byState.filter(state);
+        byDay.filter(day);
+        byMonth.filter(month);
+        
+        if(!year) { byYear.filter(year); } 
+            else if (year.length === 1) {byYear.filterExact(year); } 
+                else { byYear.filter(year); };
+        
+        byRace.filter(race);
+        
+        if(!age) { byAge.filter(age); } 
+            else if (age.length === 1) { byAge.filterExact(age); } 
+                else { byAge.filter(age); };
+        
+        byGender.filter(gender);
+        
+        var input = [];
+        
+        byGender.top(Infinity).forEach(function(d, i) {
+            
+            input.push(d);
+
+        });
+        
+        if(input.length === 0) {
+            
+            addPoints(input);
+            $('.firstRec').html('n/a');
+            $('.lastRec').html('n/a');
+            $('.freq').html('0');
+            $('.total').html('none');      
+        
+        } else {
+        
+            addPoints(input);    
+            var total = input.length;
+        
+            var dates = dateMath(input);
+        
+            if (dates[2] < dates[1]) { byDate.filter([d3.time.format('%m/%d/%Y').parse(dates[0]), dates[2]]); }
+                else { byDate.filter([dates[1], dates[2]]); };
+        
+            var results = [];
+        
+            byDate.top(Infinity).forEach(function(d, i) {
+            
+                results.push(d);
+            
+            });
+        
+            var roc = [];
+        
+            for(i = 0; i < results.length - 1; i++) { 
+            
+                var a = new XDate(results[i]['date']);
+                var b = new XDate(results[i + 1]['date']);
+                roc.push(a.diffDays(b));
+         
+            }
+        
+            roc = roc.filter(function(x){ return -x > -1; });
+            roc = roc.map(function(x) { if(x !== 0) {return x * -1; } else { return x; }});
+            console.log(roc);
+            
+            if (input.length === 1) {
+             
+                $('.firstRec').html(dates[0]);
+                $('.lastRec').html(dates[0]);
+                $('.freq').html('0');
+                $('.total').html(total);       
+ 
+            
+            } else {
+            
+                var mean = roc.reduce(function(a, b) { return a + b; });
+                var freq = mean / roc.length;
+                freq = freq.toFixed(2);
+       
+                $('.firstRec').html(dates[0]);
+                $('.lastRec').html(dateString(dates[2]));
+                $('.freq').html(freq);
+                $('.total').html(total);       
+              
+            }
+                 
+        }
+    
+    });
+    
+}
+
+function dateString(date) {
+    
+        var dd = date.getDate();
+        var mm = date.getMonth() + 1;
+        var yyyy = date.getFullYear();
+        
+        if(dd < 10) { dd = '0' + dd; }
+        if(mm < 10) { mm = '0' + mm; }
+        return mm + '/' + dd + '/' + yyyy;
+         
+}
+
+drawMap();
+
+function updatePoints() {
+    
+    var g = document.getElementById("gender");
+    var strGender = g.options[g.selectedIndex].value;
+    
+    var r = document.getElementById("race");
+    var strRace = r.options[r.selectedIndex].value;
+    
+    var a = document.getElementById("age");
+    if(a.value === "All") { var strAge = "All"; }
+        else { var strAge = a.value.split("-"); }  
+    
+    var y = document.getElementById("year");
+    if(y.value === "All") { var strYear = "All"; }
+        else { var strYear = y.value.split('-').map(function(i){
+            return parseInt(i, 10);
+       }); }; 
+   
+   var m = document.getElementById("month");
+   var strMonth = m.options[m.selectedIndex].value;
+    
+   var d = document.getElementById("day");
+   var strDay = d.options[d.selectedIndex].value;
+   
+   var s = document.getElementById("state");
+   var strState = s.value; 
+           
+   applyFilter(strGender, strAge, strRace, strYear, strMonth, strDay, strState, null);
+    
+};
+
+applyFilter(null, null,null,null,null,null, null,null);
+</script>
+
+<!---place page content here--->
+<div style='position: absolute; left: 930px; top: 15px;'>
+    <div>
+        <a href="point.html"><img src='img/icon-bar.png' width='70' height='70' style='margin-left: 20px;'></a>
+        <a href="area.html"><img src='img/icon-map.png' width='70' height='70' style='margin-left: 20px;'></a>
+    <img src='img/icon-roc.png' width='70' height='70' style='margin-left: 20px;'>
+    </div>
+</div>
+
+<div style="position: absolute; top: 665px; left: 20px; margin-left: 00px;">
+       
+    <table style="border-spacing: 50px 0; background-image: url('img/ui-bg.png'); background-position: -30px 110px; margin-bottom: 20px;">
+        <tr>
+            <td colspan="7" style="height:20px;">
+                &nbsp;
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <b>Gender:</b>
+            </td>
+            <td>
+                <b>Age:</b>
+            </td>
+            <td>
+                <b>Race:</b>
+            </td>
+            <td>
+                <b>Year:</b>
+            </td>
+            <td>
+                <b>Month:</b>
+            </td>
+            <td>
+                <b>Day:</b>
+            </td>
+            <td>
+                <b>State:</b>
+            </td>
+        </tr>
+        <tr>    
+            <td style="height: 50px;">
+                <select id="gender" onchange="updatePoints();" style="width: 80px;" class='ui-selectmenu'>
+                    <option value="All" selected="true">All</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                </select>
+            </td>
+            <td style="height: 50px;">
+                <input type="text" id="age" style="width: 102px;" onchange="updatePoints();" value="All" class='ui-textbox'>
+                <div style="font: 12px Calibri;">(Enter a range:  18-24)</div>
+    
+            </td>
+            <td style="height: 50px;">
+                <select id="race" onchange="updatePoints();" style="width: 70px;">
+                    <option value="All" selected="true">All</option>
+                    <option value="Asian">Asian</option>
+                    <option value="Black">Black</option>
+                    <option value="White">White</option>
+                    <option value="Other">Other</option>
+                </select>
+            </td>
+            <td style="height: 50px;">
+              <input type="text" id="year" style="width: 125px;" onchange="updatePoints();" value="All">
+                <div style="font: 12px Calibri;">(Enter a range:  2000-2010)</div></td>
+            <td style="height: 50px;">
+                <select id="month" onchange="updatePoints();" style="width: 100px;">
+                    <option value="All" selected="true">All</option>
+                    <option value="January">January</option>
+                    <option value="February">February</option>
+                    <option value="March">March</option>
+                    <option value="April">April</option>
+                    <option value="May">May</option>
+                    <option value="June">June</option>
+                    <option value="July">July</option>
+                    <option value="August">August</option>
+                    <option value="September">September</option>
+                    <option value="October">October</option>
+                    <option value="November">November</option>
+                    <option value="December">December</option>                    
+                </select>
+            </td>
+            <td style="height: 50px;">
+                <select id="day" onchange="updatePoints();" style="width: 110px;">
+                    <option value="All" selected="true">All</option>
+                    <option value="Monday">Monday</option>
+                    <option value="Tuesday">Tuesday</option>
+                    <option value="Wednesday">Wednesday</option>
+                    <option value="Thursday">Thursday</option>
+                    <option value="Friday">Friday</option>
+                    <option value="Saturday">Saturday</option>
+                    <option value="Sunday">Sunday</option>
+                </select>
+            </td>
+            <td style="height: 50px;">
+              <input type="text" id="state" style="width: 110px;" onchange="updatePoints();" value="All">
+                <div style="font: 12px Calibri;">(Enter abbreviation:  AZ)</div>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="7" style="height:20px;">
+                &nbsp;
+            </td>
+        </tr>
+    </table>
+    
+</div>
+    
+<div style='position: absolute; left: 890px; top: 400px;'>
+    <table>
+        <tr>
+            <td width="150" align='right'>Earliest Record:</td>
+            <td width="100" align='right'><span class='firstRec'></span></td>
+        </tr>
+        <tr>
+            <td align='right'>Latest Record:</td>
+            <td align='right'><span class='lastRec'></span></td>
+        </tr>
+        <tr>
+            <td align='right'>Frequency:</td>
+            <td align='right'><span class='freq'></span> days</td>
+        </tr>
+        <tr>
+            <td align='right'>&nbsp;</td>
+            <td align='right'></td>
+        </tr>
+        <tr>
+            <td align='right'>Total Missing:</td>
+            <td align='right'><b><span class='total'></span></b></td>
+        </tr>
+    </table>
+</div>
+
+<div style="margin-top: 155px; width: 100%; position: absolute; top: 680px;">
+
+    <div style="background-color: lightblue; padding: -10px -10px -10px -10px; height: 110px;">
+
+        <hr align='left' width='100%' style="margin-top: -1px;">
+                 <div align="left" style="margin-left: 25px; font-size: 14px; font-family: Calibri;">
+    Data current as of:  May 03, 2015            
+</div>
+
+        <div align='right' id='footer' style='margin-right: 55px; margin-top: -20px; font-size: 28px; font-family: Calibri; font-weight: bold; width: 1200px; '>
+           Viewing layout:  point
+        </div>
+        <div align="right" style="width: 1200px; font-size: 12px; font-family: Calibri; margin-bottom: 20px;">
+            <div style="margin-right: 0px;">
+                Layouts available:  point, area, time lapse
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
