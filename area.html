@@ -418,8 +418,14 @@ function drawPlaces() {
 					.style("fill", "green")
 					.attr("opacity",0.5)
 					.sort(function (a, b) { return b.value - a.value; });
-	
-        
+
+            svg.insert("path", ".graticule")
+                    .datum(topojson.mesh(json, json.objects.states, function(a, b) { return a !== b; }))
+                    .attr("class", "state-boundary")
+                    .attr("d", path)
+                    .style("stroke","black");
+
+
         states.forEach(function (d) {
 		
 		svg.select("path#"+d.key)
@@ -430,12 +436,7 @@ function drawPlaces() {
         
         });
         
-        svg.insert("path", ".graticule")
-            .datum(topojson.mesh(json, json.objects.states, function(a, b) { return a !== b; }))
-		.attr("class", "state-boundary")
-		.attr("d", path)
-		.style("stroke","black");
-        
+
         states.forEach(function (d) {
 		
             svg.select("path#"+d.key)
