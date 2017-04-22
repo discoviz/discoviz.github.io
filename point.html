@@ -1,63 +1,61 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset='utf-8'>
+    <meta charset='utf-8'>
 
-<title>
-Visualizing the NamUs Database
-</title>
+    <title>
+        Visualizing the NamUs Database
+    </title>
 </head>
 
 <style>
-/* CSS properties here */
-html, body {
-    max-width: 100%;
-    overflow-x: hidden;
-    
-}
+    /* CSS properties here */
+    html, body {
+        max-width: 100%;
+        overflow-x: hidden;
 
-body {
-    font-size: 14px;
-    font-family: Calibri;
-    margin-bottom: -20px;
-    margin-top: 0px;
-    margin-left: 0px;
-    margin-right: 0px;
-}
+    }
 
-td {
-    vertical-align: top;
-}
+    body {
+        font-size: 14px;
+        font-family: Calibri;
+        margin-bottom: -20px;
+        margin-top: 0px;
+        margin-left: 0px;
+        margin-right: 0px;
+    }
 
-path {
-  stroke-linejoin: round;
-}
+    td {
+        vertical-align: top;
+    }
 
+    path {
+        stroke-linejoin: round;
+    }
 
+    .filtergrid {
+        box-shadow: 0px 0px 40px 25px rgba(211, 235, 173, 0.75);
+        -moz-box-shadow: 0px 0px 40px 25px rgba(211, 235, 173, 0.75);
+        -webkit-box-shadow: 0px 0px 40px 25px rgba(211, 235, 173, 0.75);
+    }
 
-.filtergrid {
-box-shadow: 0px 0px 40px 25px rgba(211, 235, 173, 0.75);
--moz-box-shadow: 0px 0px 40px 25px rgba(211, 235, 173, 0.75);
--webkit-box-shadow: 0px 0px 40px 25px rgba(211, 235, 173, 0.75);
-}
+    .state-boundary {
+        fill: none;
+        stroke: #000;
+        stroke-width: 0.5px;
+    }
 
-.state-boundary {
-  fill: none;
-  stroke: #000;
-  stroke-width: 0.5px;
-}
-  
-.graticule { 
-   fill: none;
-   stroke: #000;
-   stroke-width: 1px;
-}
+    .graticule {
+        fill: none;
+        stroke: #000;
+        stroke-width: 1px;
+    }
 
-#svg {
-    position: absolute;
-    top: 70px;
-    left: 0px;   
-}
+    #svg {
+        position: absolute;
+        top: 70px;
+        left: 0px;
+    }
 
 </style>
 
@@ -71,580 +69,726 @@ box-shadow: 0px 0px 40px 25px rgba(211, 235, 173, 0.75);
 <script src='js/xdate.js'></script>
 
 <div style="position: absolute; width: 100%; background-color: lightblue; padding: -10px -10px -10px -10px; ">
-    
+
     <div style="height: 15px;"></div>
-    <div align='left' id='title' style='height: 40px; font-size: 28px; font-family: Calibri; font-weight: bold; width: 1200px; margin-left:20px;'>
+    <div align='left' id='title'
+         style='height: 40px; font-size: 28px; font-family: Calibri; font-weight: bold; width: 1200px; margin-left:20px;'>
         Visualizing the NamUs database
     </div>
 
-<hr align='left' width='100%' style="color: black !important; margin-bottom: 0px !important;">
-  
-</div>  
+    <hr align='left' width='100%'
+        style="color: black !important; margin-bottom: 0px !important;">
+
+</div>
 
 <script>
-//Place JavaScript here
-Array.prototype.sortOn = function(key){
+    //Place JavaScript here
+    Array.prototype.sortOn = function (key) {
 
-    this.sort(function(a, b){
-    
-        if(a[key] < b[key]){
-        
-            return -1;
-        
-        }else if(a[key] > b[key]){
-        
-            return 1;
-        
-        }
-        
-        return 0;
-    
-    });
+        this.sort(function (a, b) {
 
-};
+            if (a[key] < b[key]) {
 
-var width = 1100,
-    height = 600;
+                return -1;
 
-var maxi;   
-function stop() {clearInterval(interval); };
+            } else if (a[key] > b[key]) {
 
-var interval;
+                return 1;
 
-function reset(speed) {
-    
-    var scale = d3.scale.log()
-            .domain([2, maxi])
-            .range([1000,50]);
-    
-    var ptspd = Math.round(scale(speed));
-    
-    interval = setInterval(function () {feeder() ;} , ptspd);
+            }
 
-};
+            return 0;
 
-//Create canvas
-d3.select('body').append('svg')
-	.attr('id', 'svg')
-	.attr('width', width)
-	.attr('height', height);
+        });
 
-d3.select('#land').remove();
+    };
 
-function drawMap() {
-    
-    var project = d3.geo.mercator()
-                .center([-100, 40])
-		.scale(950);
+    var width = 1100,
+            height = 600;
 
-    var path = d3.geo.path()
-		.projection(project);
-
-    var svg = d3.select('#svg');
-    
-    d3.json('json/us-states.json', function(json) {        
-    
-       
-	svg.append('path')
-		.datum(topojson.feature(json, json.objects.land))
-		.attr('id', 'land')
-		.attr('d', path)
-		.attr('fill', '#d3ebad')
-		.attr('opacity', 0.7)
-        	.attr('stroke', 'black');
-	
-	svg.selectAll('path')
-		.data(topojson.mesh(json, json.objects.states))
-		.enter().append('path')
-		.attr('d', path);
-		
-	svg.insert('path', '.graticule')
-		.datum(topojson.mesh(json, json.objects.states, function(a, b) { return a !== b; }))
-		.attr('class', 'state-boundary')
-		.attr('d', path);
-	
-    });    
-        	
-};
-
-function addPoints(data) {   
-    
-    $('#gender').prop('disabled', false);
-    $('#age').prop('disabled', false);
-    $('#race').prop('disabled', false);
-    $('#year').prop('disabled', false);
-    $('#month').prop('disabled', false);
-    $('#day').prop('disabled', false);
-    $('#state').prop('disabled', false);
-    
-    if (data.length !== 0) {
-        
-        d3.select('#clock').text(data[data.length - 1]['year']);
-        
-    } else {
-            
-        d3.select('#clock').text('n/a');
-    
+    var maxi;
+    function stop() {
+        clearInterval(interval);
     }
-    
+    ;
+
+    var interval;
+
+    function reset(speed) {
+
+        var scale = d3.scale.log()
+                .domain([2, maxi])
+                .range([1000, 50]);
+
+        var ptspd = Math.round(scale(speed));
+
+        interval = setInterval(function () {
+            feeder();
+        }, ptspd);
+
+    }
+    ;
+
+    //Create canvas
+    d3.select('body').append('svg')
+            .attr('id', 'svg')
+            .attr('width', width)
+            .attr('height', height);
+
+    d3.select('#land').remove();
+
+    function drawMap() {
+
         var project = d3.geo.mercator()
                 .center([-100, 40])
-		.scale(950);
+                .scale(950);
 
         var path = d3.geo.path()
-            	.projection(project);
+                .projection(project);
 
         var svg = d3.select('#svg');
-        
+
+        d3.json('json/us-states.json', function (json) {
+
+
+            svg.append('path')
+                    .datum(topojson.feature(json, json.objects.land))
+                    .attr('id', 'land')
+                    .attr('d', path)
+                    .attr('fill', '#d3ebad')
+                    .attr('opacity', 0.7)
+                    .attr('stroke', 'black');
+
+            svg.selectAll('path')
+                    .data(topojson.mesh(json, json.objects.states))
+                    .enter().append('path')
+                    .attr('d', path);
+
+            svg.insert('path', '.graticule')
+                    .datum(topojson.mesh(json, json.objects.states, function (a, b) {
+                        return a !== b;
+                    }))
+                    .attr('class', 'state-boundary')
+                    .attr('d', path);
+
+        });
+
+    }
+    ;
+
+    function addPoints(data) {
+
+        $('#gender').prop('disabled', false);
+        $('#age').prop('disabled', false);
+        $('#race').prop('disabled', false);
+        $('#year').prop('disabled', false);
+        $('#month').prop('disabled', false);
+        $('#day').prop('disabled', false);
+        $('#state').prop('disabled', false);
+
+        if (data.length !== 0) {
+
+            d3.select('#clock').text(data[data.length - 1]['year']);
+
+        } else {
+
+            d3.select('#clock').text('n/a');
+
+        }
+
+        var project = d3.geo.mercator()
+                .center([-100, 40])
+                .scale(950);
+
+        var path = d3.geo.path()
+                .projection(project);
+
+        var svg = d3.select('#svg');
+
         //svg.selectAll('circle').remove();
-          
-        var key = function(data) { return data.id; };
+
+        var key = function (data) {
+            return data.id;
+        };
 
         var circles = svg.selectAll("circle")
-                            .data(data, key)
-        
+                .data(data, key)
+
         circles.enter().append("circle")
-                    .attr("cx", function(d) { return project([+d.lon, +d.lat])[0]; })
-                    .attr("cy", function(d) { return project([+d.lon, +d.lat])[1]; })
-                    .attr("r", 0)
-                    .attr("fill", 'darkorange')
-                    .attr('stroke', 'darkorange')
-                    .attr('stroke-width', '0px')
-                    .attr("opacity",0.0)
-                        .transition().duration(3000)
-                            .ease('sin-in-out')
-                            .attr('r', 4)
-                            .attr('fill', 'darkorange')
-                            .attr('stroke', 'darkorange')
-                            .attr('stroke-width', '0px')
-                            .attr('opacity', 0.5);
-        
-         
+                .attr("cx", function (d) {
+                    return project([+d.lon, +d.lat])[0];
+                })
+                .attr("cy", function (d) {
+                    return project([+d.lon, +d.lat])[1];
+                })
+                .attr("r", 0)
+                .attr("fill", 'darkorange')
+                .attr('stroke', 'darkorange')
+                .attr('stroke-width', '0px')
+                .attr("opacity", 0.0)
+                .transition().duration(3000)
+                .ease('sin-in-out')
+                .attr('r', 4)
+                .attr('fill', 'darkorange')
+                .attr('stroke', 'darkorange')
+                .attr('stroke-width', '0px')
+                .attr('opacity', 0.5);
+
+
         circles.exit().transition().duration(3000)
-            .ease('sin-in-out')
-            .attr('r', 0)
-            .remove();
-};
+                .ease('sin-in-out')
+                .attr('r', 0)
+                .remove();
+    }
+    ;
 
-function timeLapse(data) { 
-	
-    $('#gender').prop('disabled', true);
-    $('#age').prop('disabled', true);
-    $('#race').prop('disabled', true);
-    $('#year').prop('disabled', true);
-    $('#month').prop('disabled', true);
-    $('#day').prop('disabled', true);
-    $('#state').prop('disabled', true);
-    
-    var project = d3.geo.mercator()
+    function timeLapse(data) {
+
+        $('#gender').prop('disabled', true);
+        $('#age').prop('disabled', true);
+        $('#race').prop('disabled', true);
+        $('#year').prop('disabled', true);
+        $('#month').prop('disabled', true);
+        $('#day').prop('disabled', true);
+        $('#state').prop('disabled', true);
+
+        var project = d3.geo.mercator()
                 .center([-100, 40])
-		.scale(950);
+                .scale(950);
 
-    var path = d3.geo.path()
-            	.projection(project);
+        var path = d3.geo.path()
+                .projection(project);
 
-    var svg = d3.select('#svg');
-   
-    var count = d3.select('body').select('#clock')
-    var total = d3.select('body').select('#total')
+        var svg = d3.select('#svg');
 
-    svg.selectAll('circle').remove();
-		
-    var counter = 0;
-    var storage = [];
-    var set = data.length-1;
-    var running = true;		
-		
-    delete window.interval;
-    
-    var speed = data.length;
-        
-    reset(speed);
-		
-    window.feeder = function () { 
-				
-	if(counter <= set) {
-            
-            running = true
-            var i = data[counter % set];
-            counter += 1;
-            storage.push(i);
-            update(storage); } 
-				
-	else {
-					
-            clearInterval(interval); 
-            running = false;}
-        
-        }; 
-			
-		
-    function update(data) {
-	
-	svg.selectAll("circle")
-            .data(data).enter().append("circle")
-            .attr("cx", function(d) {
-		return project([+d.lon, +d.lat])[0];})
-            .attr("cy", function(d) { 
-		return project([+d.lon, +d.lat])[1];})
-            .attr("r", 20)
-		.style("fill", "darkorange")
-                .style('stroke', 'black')
-                .style('stroke-width', '5px')
-        	.attr("opacity",1)
+        var count = d3.select('body').select('#clock')
+        var total = d3.select('body').select('#total')
+
+        svg.selectAll('circle').remove();
+
+        var counter = 0;
+        var storage = [];
+        var set = data.length - 1;
+        var running = true;
+
+        delete window.interval;
+
+        var speed = data.length;
+
+        reset(speed);
+
+        window.feeder = function () {
+
+            if (counter <= set) {
+
+                running = true
+                var i = data[counter % set];
+                counter += 1;
+                storage.push(i);
+                update(storage);
+            }
+
+            else {
+
+                clearInterval(interval);
+                running = false;
+            }
+
+        };
+
+
+        function update(data) {
+
+            svg.selectAll("circle")
+                    .data(data).enter().append("circle")
+                    .attr("cx", function (d) {
+                        return project([+d.lon, +d.lat])[0];
+                    })
+                    .attr("cy", function (d) {
+                        return project([+d.lon, +d.lat])[1];
+                    })
+                    .attr("r", 20)
+                    .style("fill", "darkorange")
+                    .style('stroke', 'black')
+                    .style('stroke-width', '5px')
+                    .attr("opacity", 1)
                     .transition().duration(750)
-			.attr("cx", function(d) {
-                            return project([+d.lon, +d.lat])[0];})
-			.attr("cy", function(d) { 
-                            return project([+d.lon, +d.lat])[1];})
-			.attr("r", 4)
-			.style("fill", "darkorange")
-			.style("stroke", "darkorange")
-                        .style("stroke-width", '0px')
-                        .attr("opacity",0.5);
-			
-	if(data.length !== 0){
-        
-            count.text(data[data.length-1].year);
-            total.text(data.length);
-        
-        } else {
-            
-            count.text('0');
-            total.text('n/a');
-        }	
-    };	
-    
-    
+                    .attr("cx", function (d) {
+                        return project([+d.lon, +d.lat])[0];
+                    })
+                    .attr("cy", function (d) {
+                        return project([+d.lon, +d.lat])[1];
+                    })
+                    .attr("r", 4)
+                    .style("fill", "darkorange")
+                    .style("stroke", "darkorange")
+                    .style("stroke-width", '0px')
+                    .attr("opacity", 0.5);
 
-};
-	
-function dateMath(input) {
-    
-        input.sort(function(a, b) { return a.date - b.date; });
-          
+            if (data.length !== 0) {
+
+                count.text(data[data.length - 1].year);
+                total.text(data.length);
+
+            } else {
+
+                count.text('0');
+                total.text('n/a');
+            }
+        };
+
+
+    }
+    ;
+
+    function dateMath(input) {
+
+        input.sort(function (a, b) {
+            return a.date - b.date;
+        });
+
         var first = input[0]['date'];
         var dd = first.getDate();
         var mm = first.getMonth() + 1;
         var yyyy = first.getFullYear();
-        
-        if(dd < 10) { dd = '0' + dd; }
-        if(mm < 10) { mm = '0' + mm; }
+
+        if (dd < 10) {
+            dd = '0' + dd;
+        }
+        if (mm < 10) {
+            mm = '0' + mm;
+        }
         var firstRecord = mm + '/' + dd + '/' + yyyy;
-        
+
         var last = input[input.length - 1]['date'];
         var dd = last.getDate();
         var mm = last.getMonth() + 1;
         var yyyy = last.getFullYear();
-        
-        if(first.getFullYear() < 1951) { first.setFullYear(1951); };
-        
-        return[firstRecord, first, last];
-       
-}
 
-function applyFilter(gender, age, race, year, month, day, state, loc, mode) {
-    
-    if(gender === "All") { gender = null; };
-    if(age === "All") { age = null; };
-    if(race === "All") { race = null; };
-    if(day === "All") { day = null; };
-    if(month === "All") { month = null; };
-    if(year === "All") { year = null; };
-    if(state === "All" | state === '') { state = null; };
-    if(loc === "All") { loc = null; };
-    
-    d3.csv('data/missing.csv', function(error, data) {
-        
-        data.forEach(function(d) {
-            
-            d.date = d3.time.format('%m/%d/%Y').parse(d.date);
-            d.age = +d.age;
-            d.year = +d.year;
-            
-        });
-        
-        maxi = data.length;
-        
-        var cf = crossfilter(data);        
-        var byGender = cf.dimension(function(d) { return d.sex; });
-        var byAge = cf.dimension(function(d) { return d.age; });
-        var byRace = cf.dimension(function(d) { return d.race; });
-        var byDay = cf.dimension(function(d) { return d.day; });
-        var byMonth = cf.dimension(function(d) {return d.month; });
-        var byYear = cf.dimension(function(d) { return d.year; });
-        var byState = cf.dimension(function(d) { return d.state; });
-        var byLoc = cf.dimension(function(d) { return d.loc; });
-        var byDate = cf.dimension(function(d) { return d.date; });
-        
-        byLoc.filter(loc);
-        byState.filter(state);
-        byDay.filter(day);
-        byMonth.filter(month);
-        
-        if(!year) { byYear.filter(year); } 
-            else if (year.length === 1) {byYear.filterExact(year); } 
-                else { byYear.filter(year); };
-        
-        byRace.filter(race);
-        
-        if(!age) { byAge.filter(age); } 
-            else if (age.length === 1) { byAge.filterExact(age); } 
-                else { byAge.filter(age); };
-        
-        byGender.filter(gender);
-        
-        var input = [];
-        
-        byGender.top(Infinity).forEach(function(d, i) {
-            
-            input.push(d);
+        if (first.getFullYear() < 1951) {
+            first.setFullYear(1951);
+        }
+        ;
 
-        });
-        
-        input.sortOn('date');
-        
-        if(mode===false) {
-        
-         if(input.length === 0) {
-            
-            addPoints(input);
-            $('.firstRec').html('n/a');
-            $('.lastRec').html('n/a');
-            $('.freq').html('0');
-            $('.total').html('none');
-            
-            document.getElementById('timeLapse').style.display = 'none';
-            document.getElementById('timeLapse2').style.display = 'none';
-          
-         } else {
-        
-            addPoints(input);    
-            var total = input.length;
-        
-            var dates = dateMath(input);
-        
-            if (dates[2] < dates[1]) { byDate.filter([d3.time.format('%m/%d/%Y').parse(dates[0]), dates[2]]); }
-                else { byDate.filter([dates[1], dates[2]]); };
-        
-            var results = [];
-        
-            byDate.top(Infinity).forEach(function(d, i) {
-            
-                results.push(d);
-            
-            });
-        
-            var roc = [];
-        
-            for(i = 0; i < results.length - 1; i++) { 
-            
-                var a = new XDate(results[i]['date']);
-                var b = new XDate(results[i + 1]['date']);
-                roc.push(a.diffDays(b));
-         
-            }
-        
-            roc = roc.filter(function(x){ return -x > -1; });
-            roc = roc.map(function(x) { if(x !== 0) {return x * -1; } else { return x; }});
-          
-            if (input.length === 1) {
-             
-                $('.firstRec').html(dates[0]);
-                $('.lastRec').html(dates[0]);
-                $('.freq').html('0');
-                $('.total').html(total);
-                document.getElementById('timeLapse').style.display = 'none';
-                document.getElementById('timeLapse2').style.display = 'none';
-                    
-            } else {
-            
-                var mean = roc.reduce(function(a, b) { return a + b; });
-                var freq = mean / roc.length;
-                freq = freq.toFixed(2);
-       
-                $('.firstRec').html(dates[0]);
-                $('.lastRec').html(dateString(dates[2]));
-                $('.freq').html(freq);
-                $('.total').html(total);       
-                document.getElementById('timeLapse').style.display = 'block';
-                document.getElementById('timeLapse2').style.display = 'block';
-                
-                d3.select('#clock').text(data[data.length - 1]['year']);
-        
-            }
-                 
-        }
-    } else {
-         if(input.length === 0) {
-            
-            timeLapse(input);
-            $('.firstRec').html('n/a');
-            $('.lastRec').html('n/a');
-            $('.freq').html('0');
-            $('.total').html('none');
-            
-            document.getElementById('timeLapse').style.visibility = 'none';
-            document.getElementById('timeLapse2').style.visibility = 'none';
-            
-         } else {
-        
-            timeLapse(input);    
-            var total = input.length;
-        
-            var dates = dateMath(input);
-        
-            if (dates[2] < dates[1]) { byDate.filter([d3.time.format('%m/%d/%Y').parse(dates[0]), dates[2]]); }
-                else { byDate.filter([dates[1], dates[2]]); };
-        
-            var results = [];
-        
-            byDate.top(Infinity).forEach(function(d, i) {
-            
-                results.push(d);
-            
-            });
-        
-            var roc = [];
-        
-            for(i = 0; i < results.length - 1; i++) { 
-            
-                var a = new XDate(results[i]['date']);
-                var b = new XDate(results[i + 1]['date']);
-                roc.push(a.diffDays(b));
-         
-            }
-        
-            roc = roc.filter(function(x){ return -x > -1; });
-            roc = roc.map(function(x) { if(x !== 0) {return x * -1; } else { return x; }});
-          
-            if (input.length === 1) {
-             
-                $('.firstRec').html(dates[0]);
-                $('.lastRec').html(dates[0]);
-                $('.freq').html('0');
-                $('.total').html(total);       
-                document.getElementById('timeLapse').style.display = 'none';
-                document.getElementById('timeLapse2').style.display = 'none';
-            
-            
-            } else {
-            
-                var mean = roc.reduce(function(a, b) { return a + b; });
-                var freq = mean / roc.length;
-                freq = freq.toFixed(2);
-                
-                d3.select('#clock').text(data[data.length - 1]['year']);
-      
-                $('.firstRec').html(dates[0]);
-                $('.lastRec').html(dateString(dates[2]));
-                $('.freq').html(freq);
-                $('.total').html(total);       
-                document.getElementById('timeLapse').style.display = 'block';
-                document.getElementById('timeLapse2').style.display = 'block';
-            
-        
-            }
-                 
-        }
-        
+        return [firstRecord, first, last];
+
     }
-    });
-    
-}
 
-function dateString(date) {
-    
+    function applyFilter(gender, age, race, year, month, day, state, loc, mode) {
+
+        if (gender === "All") {
+            gender = null;
+        }
+        ;
+        if (age === "All") {
+            age = null;
+        }
+        ;
+        if (race === "All") {
+            race = null;
+        }
+        ;
+        if (day === "All") {
+            day = null;
+        }
+        ;
+        if (month === "All") {
+            month = null;
+        }
+        ;
+        if (year === "All") {
+            year = null;
+        }
+        ;
+        if (state === "All" | state === '') {
+            state = null;
+        }
+        ;
+        if (loc === "All") {
+            loc = null;
+        }
+        ;
+
+        d3.csv('data/missing.csv', function (error, data) {
+
+            data.forEach(function (d) {
+
+                d.date = d3.time.format('%m/%d/%Y').parse(d.date);
+                d.age = +d.age;
+                d.year = +d.year;
+
+            });
+
+            maxi = data.length;
+
+            var cf = crossfilter(data);
+            var byGender = cf.dimension(function (d) {
+                return d.sex;
+            });
+            var byAge = cf.dimension(function (d) {
+                return d.age;
+            });
+            var byRace = cf.dimension(function (d) {
+                return d.race;
+            });
+            var byDay = cf.dimension(function (d) {
+                return d.day;
+            });
+            var byMonth = cf.dimension(function (d) {
+                return d.month;
+            });
+            var byYear = cf.dimension(function (d) {
+                return d.year;
+            });
+            var byState = cf.dimension(function (d) {
+                return d.state;
+            });
+            var byLoc = cf.dimension(function (d) {
+                return d.loc;
+            });
+            var byDate = cf.dimension(function (d) {
+                return d.date;
+            });
+
+            byLoc.filter(loc);
+            byState.filter(state);
+            byDay.filter(day);
+            byMonth.filter(month);
+
+            if (!year) {
+                byYear.filter(year);
+            }
+            else if (year.length === 1) {
+                byYear.filterExact(year);
+            }
+            else {
+                byYear.filter(year);
+            }
+            ;
+
+            byRace.filter(race);
+
+            if (!age) {
+                byAge.filter(age);
+            }
+            else if (age.length === 1) {
+                byAge.filterExact(age);
+            }
+            else {
+                byAge.filter(age);
+            }
+            ;
+
+            byGender.filter(gender);
+
+            var input = [];
+
+            byGender.top(Infinity).forEach(function (d, i) {
+
+                input.push(d);
+
+            });
+
+            input.sortOn('date');
+
+            if (mode === false) {
+
+                if (input.length === 0) {
+
+                    addPoints(input);
+                    $('.firstRec').html('n/a');
+                    $('.lastRec').html('n/a');
+                    $('.freq').html('0');
+                    $('.total').html('none');
+
+                    document.getElementById('timeLapse').style.display = 'none';
+                    document.getElementById('timeLapse2').style.display = 'none';
+
+                } else {
+
+                    addPoints(input);
+                    var total = input.length;
+
+                    var dates = dateMath(input);
+
+                    if (dates[2] < dates[1]) {
+                        byDate.filter([d3.time.format('%m/%d/%Y').parse(dates[0]), dates[2]]);
+                    }
+                    else {
+                        byDate.filter([dates[1], dates[2]]);
+                    }
+                    ;
+
+                    var results = [];
+
+                    byDate.top(Infinity).forEach(function (d, i) {
+
+                        results.push(d);
+
+                    });
+
+                    var roc = [];
+
+                    for (i = 0; i < results.length - 1; i++) {
+
+                        var a = new XDate(results[i]['date']);
+                        var b = new XDate(results[i + 1]['date']);
+                        roc.push(a.diffDays(b));
+
+                    }
+
+                    roc = roc.filter(function (x) {
+                        return -x > -1;
+                    });
+                    roc = roc.map(function (x) {
+                        if (x !== 0) {
+                            return x * -1;
+                        } else {
+                            return x;
+                        }
+                    });
+
+                    if (input.length === 1) {
+
+                        $('.firstRec').html(dates[0]);
+                        $('.lastRec').html(dates[0]);
+                        $('.freq').html('0');
+                        $('.total').html(total);
+                        document.getElementById('timeLapse').style.display = 'none';
+                        document.getElementById('timeLapse2').style.display = 'none';
+
+                    } else {
+
+                        var mean = roc.reduce(function (a, b) {
+                            return a + b;
+                        });
+                        var freq = mean / roc.length;
+                        freq = freq.toFixed(2);
+
+                        $('.firstRec').html(dates[0]);
+                        $('.lastRec').html(dateString(dates[2]));
+                        $('.freq').html(freq);
+                        $('.total').html(total);
+                        document.getElementById('timeLapse').style.display = 'block';
+                        document.getElementById('timeLapse2').style.display = 'block';
+
+                        d3.select('#clock').text(data[data.length - 1]['year']);
+
+                    }
+
+                }
+            } else {
+                if (input.length === 0) {
+
+                    timeLapse(input);
+                    $('.firstRec').html('n/a');
+                    $('.lastRec').html('n/a');
+                    $('.freq').html('0');
+                    $('.total').html('none');
+
+                    document.getElementById('timeLapse').style.visibility = 'none';
+                    document.getElementById('timeLapse2').style.visibility = 'none';
+
+                } else {
+
+                    timeLapse(input);
+                    var total = input.length;
+
+                    var dates = dateMath(input);
+
+                    if (dates[2] < dates[1]) {
+                        byDate.filter([d3.time.format('%m/%d/%Y').parse(dates[0]), dates[2]]);
+                    }
+                    else {
+                        byDate.filter([dates[1], dates[2]]);
+                    }
+                    ;
+
+                    var results = [];
+
+                    byDate.top(Infinity).forEach(function (d, i) {
+
+                        results.push(d);
+
+                    });
+
+                    var roc = [];
+
+                    for (i = 0; i < results.length - 1; i++) {
+
+                        var a = new XDate(results[i]['date']);
+                        var b = new XDate(results[i + 1]['date']);
+                        roc.push(a.diffDays(b));
+
+                    }
+
+                    roc = roc.filter(function (x) {
+                        return -x > -1;
+                    });
+                    roc = roc.map(function (x) {
+                        if (x !== 0) {
+                            return x * -1;
+                        } else {
+                            return x;
+                        }
+                    });
+
+                    if (input.length === 1) {
+
+                        $('.firstRec').html(dates[0]);
+                        $('.lastRec').html(dates[0]);
+                        $('.freq').html('0');
+                        $('.total').html(total);
+                        document.getElementById('timeLapse').style.display = 'none';
+                        document.getElementById('timeLapse2').style.display = 'none';
+
+
+                    } else {
+
+                        var mean = roc.reduce(function (a, b) {
+                            return a + b;
+                        });
+                        var freq = mean / roc.length;
+                        freq = freq.toFixed(2);
+
+                        d3.select('#clock').text(data[data.length - 1]['year']);
+
+                        $('.firstRec').html(dates[0]);
+                        $('.lastRec').html(dateString(dates[2]));
+                        $('.freq').html(freq);
+                        $('.total').html(total);
+                        document.getElementById('timeLapse').style.display = 'block';
+                        document.getElementById('timeLapse2').style.display = 'block';
+
+
+                    }
+
+                }
+
+            }
+        });
+
+    }
+
+    function dateString(date) {
+
         var dd = date.getDate();
         var mm = date.getMonth() + 1;
         var yyyy = date.getFullYear();
-        
-        if(dd < 10) { dd = '0' + dd; }
-        if(mm < 10) { mm = '0' + mm; }
+
+        if (dd < 10) {
+            dd = '0' + dd;
+        }
+        if (mm < 10) {
+            mm = '0' + mm;
+        }
         return mm + '/' + dd + '/' + yyyy;
-         
-}
 
-function updatePoints() {
-    
-    stop();
-  
-    var g = document.getElementById("gender");
-    var strGender = g.options[g.selectedIndex].value;
-    
-    var r = document.getElementById("race");
-    var strRace = r.options[r.selectedIndex].value;
-    
-    var a = document.getElementById("age");
-    if(a.value === "All") { var strAge = "All"; }
-        else { var strAge = a.value.split("-"); }  
-    
-    var y = document.getElementById("year");
-    if(y.value === "All") { var strYear = "All"; }
-        else { var strYear = y.value.split('-').map(function(i){
-            return parseInt(i, 10);
-       }); }; 
-   
-   var m = document.getElementById("month");
-   var strMonth = m.options[m.selectedIndex].value;
-    
-   var d = document.getElementById("day");
-   var strDay = d.options[d.selectedIndex].value;
-   
-   var s = document.getElementById("state");
-   var strState = s.value; 
-           
-   applyFilter(strGender, strAge, strRace, strYear, strMonth, strDay, strState, null, false);
-    
-};
+    }
 
-function playTime() {
-    
-    var g = document.getElementById("gender");
-    var strGender = g.options[g.selectedIndex].value;
-    
-    var r = document.getElementById("race");
-    var strRace = r.options[r.selectedIndex].value;
-    
-    var a = document.getElementById("age");
-    if(a.value === "All") { var strAge = "All"; }
-        else { var strAge = a.value.split("-"); }  
-    
-    var y = document.getElementById("year");
-    if(y.value === "All") { var strYear = "All"; }
-        else { var strYear = y.value.split('-').map(function(i){
-            return parseInt(i, 10);
-       }); }; 
-   
-   var m = document.getElementById("month");
-   var strMonth = m.options[m.selectedIndex].value;
-    
-   var d = document.getElementById("day");
-   var strDay = d.options[d.selectedIndex].value;
-   
-   var s = document.getElementById("state");
-   var strState = s.value; 
-           
-   applyFilter(strGender, strAge, strRace, strYear, strMonth, strDay, strState, null, true);
-    
-};
-drawMap();
-setTimeout(function() {
-    
-        applyFilter(null, null,null,null,null,null, null,null, false);
-}, 2000);
+    function updatePoints() {
+
+        stop();
+
+        var g = document.getElementById("gender");
+        var strGender = g.options[g.selectedIndex].value;
+
+        var r = document.getElementById("race");
+        var strRace = r.options[r.selectedIndex].value;
+
+        var a = document.getElementById("age");
+        if (a.value === "All") {
+            var strAge = "All";
+        }
+        else {
+            var strAge = a.value.split("-");
+        }
+
+        var y = document.getElementById("year");
+        if (y.value === "All") {
+            var strYear = "All";
+        }
+        else {
+            var strYear = y.value.split('-').map(function (i) {
+                return parseInt(i, 10);
+            });
+        }
+        ;
+
+        var m = document.getElementById("month");
+        var strMonth = m.options[m.selectedIndex].value;
+
+        var d = document.getElementById("day");
+        var strDay = d.options[d.selectedIndex].value;
+
+        var s = document.getElementById("state");
+        var strState = s.value;
+
+        applyFilter(strGender, strAge, strRace, strYear, strMonth, strDay, strState, null, false);
+
+    }
+    ;
+
+    function playTime() {
+
+        var g = document.getElementById("gender");
+        var strGender = g.options[g.selectedIndex].value;
+
+        var r = document.getElementById("race");
+        var strRace = r.options[r.selectedIndex].value;
+
+        var a = document.getElementById("age");
+        if (a.value === "All") {
+            var strAge = "All";
+        }
+        else {
+            var strAge = a.value.split("-");
+        }
+
+        var y = document.getElementById("year");
+        if (y.value === "All") {
+            var strYear = "All";
+        }
+        else {
+            var strYear = y.value.split('-').map(function (i) {
+                return parseInt(i, 10);
+            });
+        }
+        ;
+
+        var m = document.getElementById("month");
+        var strMonth = m.options[m.selectedIndex].value;
+
+        var d = document.getElementById("day");
+        var strDay = d.options[d.selectedIndex].value;
+
+        var s = document.getElementById("state");
+        var strState = s.value;
+
+        applyFilter(strGender, strAge, strRace, strYear, strMonth, strDay, strState, null, true);
+
+    }
+    ;
+    drawMap();
+    setTimeout(function () {
+
+        applyFilter(null, null, null, null, null, null, null, null, false);
+    }, 2000);
 </script>
 
 <!---place page content here--->
 <div style='position: absolute; left: 1020px; top: 15px;'>
     <div>
-        <a href="area.html"><img src='img/icon-bar.png' width='70' height='70' style='margin-left: 20px;' alt="View Area"></a>
-        <a href="point.html"><img src='img/icon-map.png' width='70' height='70' style='margin-left: 20px;' alt="View Point"></a>
+        <a href="area.html"><img src='img/icon-bar.png' width='70' height='70'
+                                 style='margin-left: 20px;' alt="View Area"></a>
+        <a href="point.html"><img src='img/icon-map.png' width='70' height='70'
+                                  style='margin-left: 20px;'
+                                  alt="View Point"></a>
     </div>
 </div>
 
 <div style="position: absolute; top: 675px; left: 20px; margin-left: 00px;">
-       
+
     <table style="border-spacing: 50px 0; background-image: url('img/ui-bg.png'); background-position: -50px 110px; margin-bottom: 20px;">
         <tr>
             <td colspan="7" style="height:20px;">
@@ -674,21 +818,26 @@ setTimeout(function() {
                 <b>State:</b>
             </td>
         </tr>
-        <tr>    
+        <tr>
             <td style="height: 50px;">
-                <select id="gender" onchange="updatePoints();" style="width: 80px;" class='ui-selectmenu'>
+                <select id="gender" onchange="updatePoints();"
+                        style="width: 80px;" class='ui-selectmenu'>
                     <option value="All" selected="true">All</option>
                     <option value="Male">Male</option>
                     <option value="Female">Female</option>
                 </select>
             </td>
             <td style="height: 50px;">
-                <input type="text" id="age" style="width: 102px;" onchange="updatePoints();" value="All" class='ui-textbox'>
-                <div style="font: 12px Calibri;">(Enter a range:  18-24)</div>
-    
+                <input type="text" id="age" style="width: 102px;"
+                       onchange="updatePoints();" value="All"
+                       class='ui-textbox'>
+
+                <div style="font: 12px Calibri;">(Enter a range: 18-24)</div>
+
             </td>
             <td style="height: 50px;">
-                <select id="race" onchange="updatePoints();" style="width: 70px;">
+                <select id="race" onchange="updatePoints();"
+                        style="width: 70px;">
                     <option value="All" selected="true">All</option>
                     <option value="Asian">Asian</option>
                     <option value="Black">Black</option>
@@ -697,10 +846,15 @@ setTimeout(function() {
                 </select>
             </td>
             <td style="height: 50px;">
-              <input type="text" id="year" style="width: 125px;" onchange="updatePoints();" value="All">
-                <div style="font: 12px Calibri;">(Enter a range:  2000-2010)</div></td>
+                <input type="text" id="year" style="width: 125px;"
+                       onchange="updatePoints();" value="All">
+
+                <div style="font: 12px Calibri;">(Enter a range: 2000-2010)
+                </div>
+            </td>
             <td style="height: 50px;">
-                <select id="month" onchange="updatePoints();" style="width: 100px;">
+                <select id="month" onchange="updatePoints();"
+                        style="width: 100px;">
                     <option value="All" selected="true">All</option>
                     <option value="January">January</option>
                     <option value="February">February</option>
@@ -713,11 +867,12 @@ setTimeout(function() {
                     <option value="September">September</option>
                     <option value="October">October</option>
                     <option value="November">November</option>
-                    <option value="December">December</option>                    
+                    <option value="December">December</option>
                 </select>
             </td>
             <td style="height: 50px;">
-                <select id="day" onchange="updatePoints();" style="width: 110px;">
+                <select id="day" onchange="updatePoints();"
+                        style="width: 110px;">
                     <option value="All" selected="true">All</option>
                     <option value="Monday">Monday</option>
                     <option value="Tuesday">Tuesday</option>
@@ -729,19 +884,21 @@ setTimeout(function() {
                 </select>
             </td>
             <td style="height: 50px;">
-              <input type="text" id="state" style="width: 110px;" onchange="updatePoints();" value="All">
-                <div style="font: 12px Calibri;">(Enter abbreviation:  AZ)</div>
+                <input type="text" id="state" style="width: 110px;"
+                       onchange="updatePoints();" value="All">
+
+                <div style="font: 12px Calibri;">(Enter abbreviation: AZ)</div>
             </td>
         </tr>
         <tr>
             <td colspan="7" style="height:20px;">
                 &nbsp;
             </td>
-        </tr>      
+        </tr>
     </table>
-    
+
 </div>
-    
+
 <div style='position: absolute; left: 890px; top: 400px;'>
     <table>
         <tr>
@@ -766,15 +923,26 @@ setTimeout(function() {
         </tr>
         <tr>
             <td align='right'>Latest Year:</td>
-            <td align='right'><div id="clock"></div></td>
-        </tr>   
+            <td align='right'>
+                <div id="clock"></div>
+            </td>
+        </tr>
     </table>
 </div>
 
 <div style='position: absolute; left: 75px; top: 550px;'>
-      
-    <div id="start"><span id='timeLapse' onclick="document.getElementById('timeLapse2').style.visibility = 'visible'; this.style.visibility = 'hidden'; playTime();" style="cursor: pointer; visibility: visible;"><img src="img/start.png" width='100' height='100'></span></div>
-    <div id="stop" style="margin-top: -96px; margin-left: 8px;"><span id='timeLapse2' onclick="document.getElementById('timeLapse').style.visibility = 'visible'; this.style.visibility = 'hidden'; updatePoints();" style="cursor: pointer; visibility: hidden;"><img src="img/stop.png" width="85" height="85"></span></div>
+
+    <div id="start"><span id='timeLapse'
+                          onclick="document.getElementById('timeLapse2').style.visibility = 'visible'; this.style.visibility = 'hidden'; playTime();"
+                          style="cursor: pointer; visibility: visible;"><img
+            src="img/start.png" width='100' height='100'></span></div>
+    <div id="stop" style="margin-top: -96px; margin-left: 8px;"><span
+            id='timeLapse2'
+            onclick="document.getElementById('timeLapse').style.visibility = 'visible'; this.style.visibility = 'hidden'; updatePoints();"
+            style="cursor: pointer; visibility: hidden;"><img src="img/stop.png"
+                                                              width="85"
+                                                              height="85"></span>
+    </div>
 </div>
 
 <div style="margin-top: 155px; width: 100%; position: absolute; top: 680px;">
@@ -782,18 +950,20 @@ setTimeout(function() {
     <div style="background-color: lightblue; padding: -10px -10px -10px -10px; height: 110px;">
 
         <hr align='left' width='100%' style="margin-top: -1px;">
-                 <div align="left" style="margin-left: 25px; font-size: 14px; font-family: Calibri;">
-    Data current as of:  <span id="LastModified">
+        <div align="left"
+             style="margin-left: 25px; font-size: 14px; font-family: Calibri;">
+            Data current as of:  <span id="LastModified">
 <script>
-document.write(document.lastModified);
+    document.write(document.lastModified);
 </script>
-    </span>        
-</div>
-
-        <div align='right' id='footer' style='margin-right: 55px; margin-top: -20px; font-size: 28px; font-family: Calibri; font-weight: bold; width: 1200px; '>
-           Viewing layout:  point
+    </span>
         </div>
-       
+
+        <div align='right' id='footer'
+             style='margin-right: 55px; margin-top: -20px; font-size: 28px; font-family: Calibri; font-weight: bold; width: 1200px; '>
+            Viewing layout: point
+        </div>
+
     </div>
 </div>
 </body>
